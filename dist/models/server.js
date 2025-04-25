@@ -23,6 +23,7 @@ class Server {
         };
         this.app = (0, express_1.default)();
         this.port = process.env.PORT || '8000';
+        this.serverInstance = null;
         //metodos iniciales
         this.dbConnection();
         this.middlewares();
@@ -30,6 +31,10 @@ class Server {
     }
     dbConnection() {
         return __awaiter(this, void 0, void 0, function* () {
+            if (process.env.NODE_ENV === 'test') {
+                console.log('dbConnection method skipped in test environment');
+                return; // Salir si estamos en test
+            }
             try {
                 yield connection_1.default.authenticate();
                 console.log('Database online');
@@ -45,11 +50,30 @@ class Server {
     }
     routes() {
         this.app.use(this.apiPaths.rates, rate_1.default);
+        this.app.get('/health', (req, res) => {
+            res.status(200).json({ status: 'ok' });
+        });
     }
     listen() {
         this.app.listen(this.port, () => {
             console.log(`Server running on port ${this.port}`);
         });
+    }
+    // **Agrega este método para exponer la instancia de la aplicación**
+    getApp() {
+        return this.app;
+    }
+    // ** Agrega este método para cerrar el servidor**
+    // Necesitamos almacenar la instancia del servidor HTTP (this.serverInstance)
+    // cuando se llama a listen() para poder cerrarla.
+    close(done) {
+        if (this.serverInstance) {
+            console.log('Closing server'); // Opcional: log para depuración
+            this.serverInstance.close(done);
+        }
+        else if (done) {
+            done(); // Si no hay instancia, simplemente terminamos
+        }
     }
 }
 exports.default = Server;
