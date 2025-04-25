@@ -48,9 +48,16 @@ const getRatesHistory = (req, res) => __awaiter(void 0, void 0, void 0, function
             if (isNaN(Date.parse(end_date))) {
                 return res.status(400).json({ error: 'Formato de fecha final inválido' });
             }
-            whereClause.date = {
-                [sequelize_1.Op.between]: [new Date(start_date), new Date(end_date)]
-            };
+            if (start_date > end_date) {
+                return res.status(400).json({ error: 'La fecha inicial no puede ser mayor que la fecha final' });
+            }
+            whereClause.date = sequelize_1.Sequelize.where(sequelize_1.Sequelize.fn('DATE', sequelize_1.Sequelize.col('date')), // Aplica DATE() a la columna 'date'
+            {
+                [sequelize_1.Op.between]: [
+                    start_date, // Compara la fecha extraída con la cadena start_date
+                    end_date // Compara la fecha extraída con la cadena end_date
+                ]
+            });
         }
         else if (start_date || end_date) {
             return res.status(400).json({

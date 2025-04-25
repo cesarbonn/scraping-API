@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
+import e, { Request, Response } from 'express';
 import { fetchExchangeRates } from '../utils/scraping';
 import ExchangeRate from '../models/exchangeRates';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 
 export const getRateCurrent = async (req: Request, res: Response) => {
 
@@ -19,11 +19,11 @@ export const getRateCurrent = async (req: Request, res: Response) => {
             rate,
             date
         });
-        
+
     } catch (error) {
         console.error('Error consulting exchange rates:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
-        
+
     }
 }
 
@@ -33,7 +33,7 @@ export const getRatesHistory = async (req: Request, res: Response) => {
     try {
         // Construir objeto where condicionalmente
         const whereClause: any = {};
-        
+
         if (start_date && end_date) {
             // Validar formato de fechas
             if (isNaN(Date.parse(start_date as string))) {
@@ -42,13 +42,23 @@ export const getRatesHistory = async (req: Request, res: Response) => {
             if (isNaN(Date.parse(end_date as string))) {
                 return res.status(400).json({ error: 'Formato de fecha final inválido' });
             }
-            
-            whereClause.date = {
-                [Op.between]: [new Date(start_date as string), new Date(end_date as string)]
-            };
+            if (start_date > end_date) {
+                return res.status(400).json({ error: 'La fecha inicial no puede ser mayor que la fecha final' });
+            }
+
+            whereClause.date = Sequelize.where(
+                Sequelize.fn('DATE', Sequelize.col('date')), // Aplica DATE() a la columna 'date'
+                {
+                    [Op.between]: [
+                        start_date as string, // Compara la fecha extraída con la cadena start_date
+                        end_date as string    // Compara la fecha extraída con la cadena end_date
+                    ]
+                }
+            );
+
         } else if (start_date || end_date) {
-            return res.status(400).json({ 
-                error: 'Debes proporcionar ambas fechas (start_date y end_date) o ninguna' 
+            return res.status(400).json({
+                error: 'Debes proporcionar ambas fechas (start_date y end_date) o ninguna'
             });
         }
 
@@ -60,7 +70,7 @@ export const getRatesHistory = async (req: Request, res: Response) => {
         });
 
         if (!rates || rates.length === 0) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 error: 'No se encontraron tasas de cambio',
                 ...(start_date && end_date && {
                     suggestion: `Intenta con un rango de fechas diferente al ${start_date} - ${end_date}`
@@ -80,10 +90,10 @@ export const getRatesHistory = async (req: Request, res: Response) => {
                 }
             })
         });
-        
+
     } catch (error) {
         console.error('Error consulting exchange rates:', error);
-        return res.status(500).json({ 
+        return res.status(500).json({
             error: 'Internal Server Error',
             details: error instanceof Error ? error.message : 'Error desconocido'
         });
