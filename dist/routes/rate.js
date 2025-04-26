@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const rates_1 = require("../controllers/rates");
 const router = (0, express_1.Router)();
-// Versión con tipado explícito y manejo de errores
+// Define the routes for the rate API
 router.get('/current', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield (0, rates_1.getRateCurrent)(req, res);

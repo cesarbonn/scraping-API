@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
+// Create a new Sequelize instance to connect to the database
 const db = new sequelize_1.Sequelize('node', 'admin', '123456!@#$%^', {
     host: 'localhost',
     dialect: 'mysql',

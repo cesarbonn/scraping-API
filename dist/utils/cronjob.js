@@ -23,19 +23,19 @@ const fetchAndSaveExchangeRates = () => __awaiter(void 0, void 0, void 0, functi
         // Make sure ExchangeRate model is accessible here or passed in
         const ExchangeRates = exchangeRates_1.default;
         const { currency, rate, date } = exchangeRates;
-        // 1. Convert rate to float
+        // Convert rate to float, handling different decimal and thousand separators
         const rateValue = parseFloat(rate.replace(/\./g, '')
             .replace(',', '.'));
         if (isNaN(rateValue)) {
-            throw new Error(`Formato de tasa inválido: ${rate}`);
+            throw new Error(`Invalid rate format: ${rate}`);
         }
-        // 2. Convert date from "Jueves, 24 Abril 2025" to DATEONLY (YYYY-MM-DD)
+        // Convert date from "Jueves, 24 Abril 2025" to DATEONLY (YYYY-MM-DD)
         const formatDate = (dateStr) => {
-            // Eliminate the day of the week (e.g., "Jueves,") and space
+            // Remove the day of the week and the following comma and space
             const datePart = dateStr.replace(/^[^,]+,/, '').trim();
-            // Parse the date string
+            // Split the date part into day, month name, and year
             const [day, monthName, year] = datePart.split(/\s+/);
-            // Mapear names of months to numbers
+            // Map Spanish month names to their corresponding numbers
             const months = {
                 'Enero': '01', 'Febrero': '02', 'Marzo': '03',
                 'Abril': '04', 'Mayo': '05', 'Junio': '06',
@@ -44,9 +44,9 @@ const fetchAndSaveExchangeRates = () => __awaiter(void 0, void 0, void 0, functi
             };
             const monthNumber = months[monthName];
             if (!monthNumber) {
-                // Fallback or handle unrecognised month name if needed
-                console.warn(`Nombre de mes no reconocido: ${monthName}. Intentando parsear directamente.`);
-                // Attempt to parse using Date object, may fail if format isn't standard
+                // Fallback if the month name is not recognized
+                console.warn(`Unrecognized month name: ${monthName}. Attempting direct parse.`);
+                // Attempt to parse using Date object as a last resort
                 const dateObjFromStr = new Date(dateStr);
                 if (!isNaN(dateObjFromStr.getTime())) {
                     const year = dateObjFromStr.getFullYear();
@@ -55,54 +55,52 @@ const fetchAndSaveExchangeRates = () => __awaiter(void 0, void 0, void 0, functi
                     return `${year}-${month}-${day}`;
                 }
                 else {
-                    throw new Error(`Nombre de mes o formato de fecha no reconocido: ${dateStr}`);
+                    throw new Error(`Unrecognized month name or date format: ${dateStr}`);
                 }
             }
-            // Format as YYYY-MM-DD
+            // Format the date as YYYY-MM-DD
             const formattedDate = `${year}-${monthNumber}-${day.padStart(2, '0')}`;
-            // Validate date string before returning
+            // Validate the formatted date string
             const dateObj = new Date(formattedDate);
             if (isNaN(dateObj.getTime())) {
-                throw new Error(`Fecha inválida después de formatear: ${formattedDate} (original: ${dateStr})`);
+                throw new Error(`Invalid date after formatting: ${formattedDate} (original: ${dateStr})`);
             }
             return formattedDate;
         };
         const formattedDate = formatDate(date);
-        // Create the object to save in the database
+        // Prepare the data to be saved in the database
         const rateToSave = {
             currency,
             rate: rateValue,
             date: formattedDate
         };
-        console.log('Datos procesados para guardar:', rateToSave);
-        // Save or update the rate in the database
+        console.log('Processed data for saving:', rateToSave);
+        // Save or update the exchange rate in the database
         const [savedRate, created] = yield ExchangeRates.upsert(rateToSave);
-        console.log(`Tasa de cambio ${created ? 'creada' : 'actualizada'} exitosamente para la fecha ${formattedDate}`);
-        console.log('Tarea de scraper completada');
+        console.log(`Exchange rate ${created ? 'created' : 'updated'} successfully for date ${formattedDate}`);
+        console.log('Scraper task completed');
     }
     catch (error) {
-        console.error('Error durante la ejecución de la tarea de scraper:', error);
-        // Depending on your needs, you might want to re-throw the error
-        // throw error;
+        console.error('Error during scraper task execution:', error);
     }
 });
 const cronjob = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log('Ejecutando tarea de scraper al inicio del servidor...');
+        console.log('Executing scraper task on server start...');
         yield fetchAndSaveExchangeRates();
-        console.log('Tarea de scraper al inicio completada.');
-        // Schedule the task to run every 12 hours and when the server starts
+        console.log('Initial scraper task completed.');
+        // Schedule the task to run every 12 hours
         const twelveHourSchedule = '0 */12 * * *';
-        console.log(`Programando tarea de scraper para ejecutarse con la expresión cron: ${twelveHourSchedule}`);
+        console.log(`Scheduling scraper task to run with cron expression: ${twelveHourSchedule}`);
         node_cron_1.default.schedule(twelveHourSchedule, () => __awaiter(void 0, void 0, void 0, function* () {
-            console.log('Ejecutando tarea de scraper programada...');
+            console.log('Executing scheduled scraper task...');
             yield fetchAndSaveExchangeRates();
-            console.log('Tarea de scraper programada completada.');
+            console.log('Scheduled scraper task completed.');
         }));
-        console.log('Cron job scheduler iniciado correctamente.');
+        console.log('Cron job scheduler started successfully.');
     }
     catch (error) {
-        console.error('Error al configurar o ejecutar el scraper:', error);
+        console.error('Error setting up or running the scraper:', error);
     }
 });
 exports.cronjob = cronjob;

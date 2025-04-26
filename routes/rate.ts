@@ -3,7 +3,7 @@ import {getRatesHistory, getRateCurrent } from "../controllers/rates";
 
 const router = Router();
 
-// Versión con tipado explícito y manejo de errores
+// Define the routes for the rate API
 router.get('/current', async (req, res, next) => {
     try {
         await getRateCurrent(req, res);

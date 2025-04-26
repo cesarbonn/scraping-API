@@ -1,42 +1,105 @@
-// src/__tests__/server.test.ts
-
 import request from 'supertest';
-import app from '../app'; // Asegúrate de que este path sea correcto
+import app from '../app';
 
-// ... (otros describe blocks como Basic Jest Setup, Basic Supertest Check)
 
-// Describe un grupo de tests para tu endpoint /api/rates/current
-describe('GET /api/rates/current Endpoint', () => {
+// Mocking the ExchangeRates model for testing purposes
+jest.mock('../models/ExchangeRates', () => {
+  // Create a mock object to simulate the ExchangeRates model
+  const mockModel = {
+    findOne: jest.fn().mockResolvedValue({
+      currency: 'MOCKED_USD', // Test data for findOne
+      rate: 70.99,
+      date: '2025-01-01',
 
-  // Test para verificar que el endpoint responde con 200 OK
-  // Asumimos que este endpoint no requiere parámetros en la URL o cuerpo para un caso básico
-  it('should return 200 and current rate data', async () => {
+      toJSON: () => ({
+        currency: 'MOCKED_USD',
+        rate: 70.99,
+        date: '2025-01-01',
+      }),
+    }),
 
-    // Realiza la petición GET a la ruta COMPLETA
-    const response = await request(app).get('/api/rates/current');
+    findAll: jest.fn().mockResolvedValue([ // <-- Returns an ARRAY of mocked objects
+      {
+        currency: 'MOCKED_USD', // Test data for findOne
+        rate: 80.99,
+        date: '2025-03-01',
 
-    // **Aserciones:**
-    // 1. Verifica que el código de estado sea 200 (OK)
-    expect(response.status).toBe(200);
+        toJSON: () => ({
+          currency: 'MOCKED_USD',
+          rate: 80.99,
+          date: '2025-03-01',
+        }),
+      },
+      {
+        currency: 'MOCKED_USD', // Test data for findOne
+        rate: 89.99,
+        date: '2025-04-01',
 
-    // 2. Verifica que la respuesta sea JSON (asumiendo que devuelve JSON)
-    expect(response.headers['content-type']).toMatch(/json/);
+        toJSON: () => ({
+          currency: 'MOCKED_USD',
+          rate: 89.99,
+          date: '2025-04-01',
+        }),
+      },
+    ]),
 
-    // 3. Verifica que el cuerpo de la respuesta NO esté vacío
-    // expect(response.body).toBeDefined(); // Verifica que hay un cuerpo
-    // expect(response.body).not.toBeNull(); // Y que no es null
+  };
 
-    // 4. (Opcional) Si sabes la ESTRUCTURA mínima de la respuesta, verifícala.
-    // Por ejemplo, si siempre devuelve un objeto con una propiedad 'rate' y 'timestamp':
-    // expect(response.body).toBeInstanceOf(Object);
-    // expect(response.body).toHaveProperty('rate');
-    // expect(response.body).toHaveProperty('timestamp');
-    // expect(typeof response.body.rate).toBe('number'); // Si la tasa es un número
+  return { __esModule: true, default: mockModel }; // Export the mock as the default
+});
 
+// ** --- End of Mocking Configuration --- **
+
+
+// The tests
+describe('API Endpoints Tests', () => {
+
+  describe('GET /api/rates/current Endpoint', () => {
+
+    it('should return 200 and current rate data (mocked)', async () => {
+
+      // Perform the GET request to the COMPLETE route
+      const response = await request(app).get('/api/rates/current');
+
+      // **Assertions:**
+      expect(response.status).toBe(200); // Verify that the status code is 200
+      expect(response.headers['content-type']).toMatch(/json/); // Verify that the response is JSON
+
+      // Verify that the response body is an object (as your controller expects for /current)
+      expect(response.body).toBeInstanceOf(Object);
+
+      // Verify the properties you expect in the response
+      expect(response.body).toHaveProperty('currency');
+      expect(response.body).toHaveProperty('date');
+      expect(response.body).toHaveProperty('rate');
+
+      // Verify the basic types
+      expect(typeof response.body.currency).toBe('string');;
+      expect(typeof response.body.rate).toBe('number');
+
+    });
   });
 
-  // Puedes añadir más tests aquí, dependiendo de si /current necesita query params,
-  // si puede dar errores específicos (ej. si la DB está caída, aunque ya mockeamos la conexión)
-  // it('should return 400 if a required query parameter is missing', async () => { ... });
+  // ** --- Test for /api/rates/history --- **
+  describe('GET /api/rates/history Endpoint', () => {
 
+    it('should return 200 and rate history data (mocked)', async () => {
+
+      const response = await request(app).get('/api/rates/history'); // Request without query params
+
+      expect(response.status).toBe(200); // Verify the status code
+      expect(response.headers['content-type']).toMatch(/json/); // Verify that the response is JSON
+
+      // **Assertions for history:**
+
+      expect(response.body).toBeInstanceOf(Object); // <-- Expect the response body to be an Object
+
+      if (Array.isArray(response.body) && response.body.length > 0) {
+        expect(response.body[0]).toBeInstanceOf(Object);
+        expect(response.body[0]).toHaveProperty('currency');
+        expect(response.body[0]).toHaveProperty('rate');
+        expect(response.body[0]).toHaveProperty('date');
+      }
+    });
+  });
 });
