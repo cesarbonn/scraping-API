@@ -29,17 +29,17 @@ The project implements a **Financial Operations Backend Service** focused on fet
 Follow these steps to set up and run the project locally:
 
 1.  **Prerequisites:**
-    * Node.js (version v22.14.0 or higher) and npm.
+    * Node.js (version v22.0.0 or higher) and npm.
     * A MySQL database server running locally or accessible.
 
 2.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/cesarbonn/scraping-API.git
+    git clone [https://github.com/cesarbonn/scraping-API.git](https://github.com/cesarbonn/scraping-API.git)
     ```
 
 3.  **Navigate to Project Folder:**
     ```bash
-    cd scraping-API
+    cd take-home-challenge
     ```
 
 4.  **Install Dependencies:**
@@ -63,17 +63,26 @@ Follow these steps to set up and run the project locally:
     * **Development Dependencies** (needed for building, testing, etc.):
         `@types/cors`, `@types/express`, `@types/jest`, `@types/node-cron`, `@types/supertest`, `cross-env`, `jest`, `supertest`, `ts-jest`, `tslint`, `typescript`
 
-[...]
-
 5.  **Database Configuration:**
     * Create a database named `node`.
-    
+    * Create a `.env` file in the root of the project.
     * Edit the newly created `.env` file and fill in your database connection credentials:
         ```env
-       DB_DATABASE=node
-       DB_USERNAME=admin
-       DB_PASSWORD=123456!@#$%^
-       DB_HOST=localhost
-       DB_CONNECTION=mysql
+        DB_DATABASE=node
+        DB_USERNAME=your_user_name
+        DB_PASSWORD=your_password
+        DB_HOST=localhost
+        DB_CONNECTION=mysql
+        PORT='8000'
         ```
-    * Save the `.
+    * Save the `.env` file.
+
+6. **Start the Server:**
+
+    To start the backend server and begin fetching/serving data, run the following command:
+
+    ```bash
+    npm start
+    ```
+
+    This will typically start the Express server and the scheduled scraping task. The API will be available at `http://localhost:8000` (or the PORT specified in your `.env` file).
