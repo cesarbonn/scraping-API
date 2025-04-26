@@ -4,8 +4,6 @@ import cors from 'cors';
 import db from '../database/connection';
 import { Server as HttpServer } from 'http';
 
-// definicion de la clase Server
-// Esta clase es la que se encarga de crear el servidor y de inicializarlo
 
 class Server{
 
@@ -17,7 +15,7 @@ class Server{
 
     private serverInstance: HttpServer | null;
 
-    // Constructor de la clase Server
+  
     constructor(){
 
         this.app   = express();
@@ -30,11 +28,12 @@ class Server{
         this.routes();
     }
 
-    // Metodo para inicializar la base de datos
+  
     async dbConnection(){
+        
         if (process.env.NODE_ENV === 'test') {
             console.log('dbConnection method skipped in test environment');
-            return; // Salir si estamos en test
+            return; 
        }
         try {
 
@@ -46,44 +45,34 @@ class Server{
         }
     }
     
-
-    // Metodo para inicializar los middlewares
     middlewares(){
+
         this.app.use(cors())
         this.app.use(express.json());
-       
     }
 
-    // Metodo para inicializar las rutas
     routes(){
+
         this.app.use(this.apiPaths.rates, router);
-        this.app.get('/health', (req, res) => {
-            res.status(200).json({ status: 'ok' });
-        });
     }
 
-    //Listener para el servidor
     listen(){
+
         this.app.listen(this.port, () => {
             console.log(`Server running on port ${this.port}`);
         })
     }
 
-
- // **Este método se agrega para exponer la instancia de la aplicación**
  getApp(): Application {
     return this.app;
 }
 
-// ** Agrega este método para cerrar el servidor**
-// Necesitamos almacenar la instancia del servidor HTTP (this.serverInstance)
-// cuando se llama a listen() para poder cerrarla.
     close(done?: (err?: Error | undefined) => void): void {
         if (this.serverInstance) {
-            console.log('Closing server'); // Opcional: log para depuración
+            console.log('Closing server'); 
             this.serverInstance.close(done);
         } else if (done) {
-            done(); // Si no hay instancia, simplemente terminamos
+            done(); 
         }
     }
 }

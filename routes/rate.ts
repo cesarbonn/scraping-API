@@ -1,10 +1,10 @@
-import { Router} from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import {getRatesHistory, getRateCurrent } from "../controllers/rates"; 
 
 const router = Router();
 
-// Define the routes for the rate API
-router.get('/current', async (req, res, next) => {
+// Define the routes for the API rates endpoint
+router.get('/current', async (req: Request, res: Response, next: NextFunction) => {
     try {
         await getRateCurrent(req, res);
     } catch (error) {
@@ -12,7 +12,7 @@ router.get('/current', async (req, res, next) => {
     }
 });
 
-router.get('/history', async (req, res, next) => {
+router.get('/history', async (req: Request, res: Response, next: NextFunction) => {
     try {
         await getRatesHistory(req, res);
     } catch (error) {

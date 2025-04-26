@@ -16,26 +16,21 @@ exports.cronjob = void 0;
 const node_cron_1 = __importDefault(require("node-cron"));
 const scraping_1 = require("../utils/scraping");
 const exchangeRates_1 = __importDefault(require("../models/exchangeRates"));
+// Function to fetch exchange rates and save them to the database
 const fetchAndSaveExchangeRates = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const exchangeRates = yield (0, scraping_1.fetchExchangeRates)();
         console.log('Exchange rates fetched:', exchangeRates);
-        // Make sure ExchangeRate model is accessible here or passed in
         const ExchangeRates = exchangeRates_1.default;
         const { currency, rate, date } = exchangeRates;
-        // Convert rate to float, handling different decimal and thousand separators
         const rateValue = parseFloat(rate.replace(/\./g, '')
             .replace(',', '.'));
         if (isNaN(rateValue)) {
             throw new Error(`Invalid rate format: ${rate}`);
         }
-        // Convert date from "Jueves, 24 Abril 2025" to DATEONLY (YYYY-MM-DD)
         const formatDate = (dateStr) => {
-            // Remove the day of the week and the following comma and space
             const datePart = dateStr.replace(/^[^,]+,/, '').trim();
-            // Split the date part into day, month name, and year
             const [day, monthName, year] = datePart.split(/\s+/);
-            // Map Spanish month names to their corresponding numbers
             const months = {
                 'Enero': '01', 'Febrero': '02', 'Marzo': '03',
                 'Abril': '04', 'Mayo': '05', 'Junio': '06',
@@ -44,9 +39,7 @@ const fetchAndSaveExchangeRates = () => __awaiter(void 0, void 0, void 0, functi
             };
             const monthNumber = months[monthName];
             if (!monthNumber) {
-                // Fallback if the month name is not recognized
                 console.warn(`Unrecognized month name: ${monthName}. Attempting direct parse.`);
-                // Attempt to parse using Date object as a last resort
                 const dateObjFromStr = new Date(dateStr);
                 if (!isNaN(dateObjFromStr.getTime())) {
                     const year = dateObjFromStr.getFullYear();
@@ -58,9 +51,7 @@ const fetchAndSaveExchangeRates = () => __awaiter(void 0, void 0, void 0, functi
                     throw new Error(`Unrecognized month name or date format: ${dateStr}`);
                 }
             }
-            // Format the date as YYYY-MM-DD
             const formattedDate = `${year}-${monthNumber}-${day.padStart(2, '0')}`;
-            // Validate the formatted date string
             const dateObj = new Date(formattedDate);
             if (isNaN(dateObj.getTime())) {
                 throw new Error(`Invalid date after formatting: ${formattedDate} (original: ${dateStr})`);
@@ -68,14 +59,12 @@ const fetchAndSaveExchangeRates = () => __awaiter(void 0, void 0, void 0, functi
             return formattedDate;
         };
         const formattedDate = formatDate(date);
-        // Prepare the data to be saved in the database
         const rateToSave = {
-            currency,
+            currency: currency,
             rate: rateValue,
             date: formattedDate
         };
         console.log('Processed data for saving:', rateToSave);
-        // Save or update the exchange rate in the database
         const [savedRate, created] = yield ExchangeRates.upsert(rateToSave);
         console.log(`Exchange rate ${created ? 'created' : 'updated'} successfully for date ${formattedDate}`);
         console.log('Scraper task completed');
@@ -84,15 +73,14 @@ const fetchAndSaveExchangeRates = () => __awaiter(void 0, void 0, void 0, functi
         console.error('Error during scraper task execution:', error);
     }
 });
+// Function to schedule the scraper task 
 const cronjob = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log('Executing scraper task on server start...');
         yield fetchAndSaveExchangeRates();
-        console.log('Initial scraper task completed.');
-        // Schedule the task to run every 12 hours
-        const twelveHourSchedule = '0 */12 * * *';
-        console.log(`Scheduling scraper task to run with cron expression: ${twelveHourSchedule}`);
-        node_cron_1.default.schedule(twelveHourSchedule, () => __awaiter(void 0, void 0, void 0, function* () {
+        const Schedule = '0 * */23 * * *';
+        console.log(`Scheduling scraper task to run with cron expression: ${Schedule}`);
+        node_cron_1.default.schedule(Schedule, () => __awaiter(void 0, void 0, void 0, function* () {
             console.log('Executing scheduled scraper task...');
             yield fetchAndSaveExchangeRates();
             console.log('Scheduled scraper task completed.');

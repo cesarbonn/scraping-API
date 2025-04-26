@@ -46,18 +46,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchExchangeRates = void 0;
-const cheerio = __importStar(require("cheerio")); // For HTML parsing
-const axios_1 = __importDefault(require("axios")); // For HTTP requests
-// Fetches the USD exchange rate from the BCV website.
+const cheerio = __importStar(require("cheerio"));
+const axios_1 = __importDefault(require("axios"));
+// Fetches the USD exchange rate and date from the BCV website.
 const fetchExchangeRates = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const res = yield (0, axios_1.default)('https://www.bcv.org.ve'); // Get the website HTML
+        let res;
+        try {
+            res = yield (0, axios_1.default)('https://www.bcv.org.ve');
+        }
+        catch (error) {
+            console.error("Error fetching the BCV page:", error);
+            throw new Error('Failed to fetch BCV page');
+        }
         const htmlData = res.data;
-        const $ = cheerio.load(htmlData); // Load HTML for easy querying
-        // Extract the date of the exchange rate.
-        const dateElement = $('.pull-right.dinpro.center .date-display-single', htmlData);
+        const $ = cheerio.load(htmlData);
+        const dateElement = $('.pull-right.dinpro.center .date-display-single');
         const dateValue = dateElement.text().trim();
-        const rateElements = $('.field-content', htmlData);
+        const rateElements = $('.field-content');
         let usdRate = null;
         rateElements.each((index, element) => {
             const currencyElement = $(element).find('.col-sm-6.col-xs-6 span');
@@ -65,8 +71,8 @@ const fetchExchangeRates = () => __awaiter(void 0, void 0, void 0, function* () 
             const currency = currencyElement.text().trim();
             const rateValue = valueElement.text().trim();
             if (currency === 'USD') {
-                usdRate = { currency, rate: rateValue, date: dateValue };
-                return false; // Break the loop if USD is found
+                usdRate = { currency: currency, rate: rateValue, date: dateValue };
+                return false;
             }
         });
         if (!usdRate) {

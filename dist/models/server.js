@@ -16,10 +16,7 @@ const express_1 = __importDefault(require("express"));
 const rate_1 = __importDefault(require("../routes/rate"));
 const cors_1 = __importDefault(require("cors"));
 const connection_1 = __importDefault(require("../database/connection"));
-// definicion de la clase Server
-// Esta clase es la que se encarga de crear el servidor y de inicializarlo
 class Server {
-    // Constructor de la clase Server
     constructor() {
         this.apiPaths = {
             rates: '/api/rates'
@@ -32,12 +29,11 @@ class Server {
         this.middlewares();
         this.routes();
     }
-    // Metodo para inicializar la base de datos
     dbConnection() {
         return __awaiter(this, void 0, void 0, function* () {
             if (process.env.NODE_ENV === 'test') {
                 console.log('dbConnection method skipped in test environment');
-                return; // Salir si estamos en test
+                return;
             }
             try {
                 yield connection_1.default.authenticate();
@@ -48,38 +44,28 @@ class Server {
             }
         });
     }
-    // Metodo para inicializar los middlewares
     middlewares() {
         this.app.use((0, cors_1.default)());
         this.app.use(express_1.default.json());
     }
-    // Metodo para inicializar las rutas
     routes() {
         this.app.use(this.apiPaths.rates, rate_1.default);
-        this.app.get('/health', (req, res) => {
-            res.status(200).json({ status: 'ok' });
-        });
     }
-    //Listener para el servidor
     listen() {
         this.app.listen(this.port, () => {
             console.log(`Server running on port ${this.port}`);
         });
     }
-    // **Este método se agrega para exponer la instancia de la aplicación**
     getApp() {
         return this.app;
     }
-    // ** Agrega este método para cerrar el servidor**
-    // Necesitamos almacenar la instancia del servidor HTTP (this.serverInstance)
-    // cuando se llama a listen() para poder cerrarla.
     close(done) {
         if (this.serverInstance) {
-            console.log('Closing server'); // Opcional: log para depuración
+            console.log('Closing server');
             this.serverInstance.close(done);
         }
         else if (done) {
-            done(); // Si no hay instancia, simplemente terminamos
+            done();
         }
     }
 }
