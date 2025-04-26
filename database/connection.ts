@@ -15,5 +15,5 @@ const db = new Sequelize(
         // logging: false,
     }
 );
-
+    
 export default db;
