@@ -39,7 +39,7 @@ Follow these steps to set up and run the project locally:
 
 3.  **Navigate to Project Folder:**
     ```bash
-    cd take-home-challenge
+    cd scraping-API
     ```
 
 4.  **Install Dependencies:**
