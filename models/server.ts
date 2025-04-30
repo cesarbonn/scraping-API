@@ -22,7 +22,7 @@ class Server {
         this.port = process.env.PORT || '8000';
         this.serverInstance = null;
 
-        //metodos iniciales
+    
         this.dbConnection();
         this.middlewares();
         this.routes();
