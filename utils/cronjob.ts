@@ -90,7 +90,7 @@ export const cronjob = async () => {
         console.log('Executing scraper task on server start...');
         await fetchAndSaveExchangeRates();
 
-        const Schedule = '0 * */23 * * *';
+        const Schedule = '0 * 0 * * *'; 
 
         console.log(`Scheduling scraper task to run with cron expression: ${Schedule}`);
 

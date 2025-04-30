@@ -78,7 +78,7 @@ const cronjob = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log('Executing scraper task on server start...');
         yield fetchAndSaveExchangeRates();
-        const Schedule = '0 * */23 * * *';
+        const Schedule = '0 * 0 * * *';
         console.log(`Scheduling scraper task to run with cron expression: ${Schedule}`);
         node_cron_1.default.schedule(Schedule, () => __awaiter(void 0, void 0, void 0, function* () {
             console.log('Executing scheduled scraper task...');
