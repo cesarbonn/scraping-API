@@ -51,9 +51,22 @@ class Server {
     routes() {
         this.app.use(this.apiPaths.rates, rate_1.default);
     }
+    //DB connection and synchronization
     listen() {
-        this.app.listen(this.port, () => {
-            console.log(`Server running on port ${this.port}`);
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield connection_1.default.authenticate();
+                console.log('Database online');
+                yield connection_1.default.sync();
+                console.log("Database models synchronized (tables created/updated).");
+                this.app.listen(this.port, () => {
+                    console.log('Server running on port ' + this.port);
+                });
+            }
+            catch (error) {
+                console.error('Unable to connect to the database or synchronize models:', error);
+                process.exit(1);
+            }
         });
     }
     getApp() {
